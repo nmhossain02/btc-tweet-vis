@@ -1,0 +1,30 @@
+:root {
+    font-size: 150%;
+}
+
+.wrapper {
+    display: flex;
+    flex-flow: column nowrap;
+    margin: 3rem 4rem;
+}
+
+iframe {
+    align-self: center;
+    width: 80%;
+    min-height: 50vh;
+    max-height: 100vh;
+}
+
+p {
+    width: 70%;
+}
+
+ul {
+    width: 80%;
+}
+
+blockquote {
+    width: 60%;
+    margin-left: 5%;
+    font-style: italic;
+}

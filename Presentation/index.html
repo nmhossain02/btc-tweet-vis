@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
+    <title>Tweets and bitcoin prices</title>
+</head>
+<body>
+    <div class="wrapper">
+        <h1>Tweets and Bitcoin Prices</h1>
+        <p class="lead"><em>Nabeel Hossain, 16 March 2021</em></p>
+        <p>
+            In this data visualization project, I got my hands on a large dataset of tweets that contained #bitcoin and #btc. I wanted to see if these tweets had any kind of impact on the actual price of bitcoin. I decided to then get another dataset of bitcoin prices. Though I had wanted to do this with the entirety of the 2.8 million tweets, not even Google Colab's free tier resources were fast enough. Thus, I could only carry out my analysis on verified tweets, which brought the size of my dataset to a much more manageable 16 thousand rows.
+        </p>
+        <p>
+            After lots of data cleaning, type converting, cross-dataframe lookups, I managed to put my data together into some nice visuals. The purpose of this project is not to let out the big secrets that lie beneath these tweets; rather, it is a suggestion and starting point on how an analysis of this nature can materialize. If someone wants to do this with the entire dataset, do let me know!
+        </p>
+        <ul>
+            <li><a href="https://www.kaggle.com/kaushiksuresh147/bitcoin-tweets">Bitcoin tweets</a></li>
+            <li><a href="https://www.cryptodatadownload.com/data/bitstamp/">Bitcoin Prices</a></li>
+            <li><a href="https://colab.research.google.com/drive/1Y3P-Omubr8LpTtm4qkC5OSrq4DQbBxrB?usp=sharing">Data Shortening Notebook</a></li>
+            <li><a href="https://colab.research.google.com/drive/1PKnHY8dPww_83YrXanrUgvEUgg8MqyDf?usp=sharing">Data Processing Notebook</a></li>
+            <li><a href="https://colab.research.google.com/drive/1Xwsx2iy-EsLI6xSsx4XIcTOZD1inDByj?usp=sharing">Visualization Notebook</a></li>
+            <li><a href="https://github.com/nmhossain02/btc-tweet-vis">Github</a></li>
+        </ul>
+        <h2>The Datasets</h2>
+        <p>
+            The dataset of tweets was collected through the Twitter API. There were 13 columns:
+        </p>
+        <ul>
+            <li>Username: the name that the user has posted the tweet under </li>
+            <li>User location: the user-provided location of the tweet </li>
+            <li>User description: the user's Twitter bio </li>
+            <li>User created: the date the user was created </li>
+            <li>User followers: how many followers the user has </li>
+            <li>User friends: how many friends the user has </li>
+            <li>User favorites: how many favorites the user has </li>
+            <li>User verified: whether the user is verified. This will likely be a useful categorical variable </li>
+            <li>Date: when the tweet was sent (time and date) </li>
+            <li>Text: the content of the tweet </li>
+            <li>Hashtags: hashtags the tweet was posted with </li>
+            <li>Source: which Twitter client the user tweeted from </li>
+            <li>Is retweet: whether the tweet is a retweet </li>
+        </ul>
+        <p>
+            The other dataset contains the open, low, high, and close prices of bitcoin in US dollars for each minute up to a year ago. After having collected this data, I went to work on visualizing the data.
+        </p>
+
+        <h2>The Questions in Question</h2>
+        <p>
+            Before I dove in, I had to take some time to clarify my question. I wanted to know if the prices of bitcoin had any effect on the characteristics of tweets and vice versa. The main question this boiled down to was:
+        </p>
+        <blockquote class="blockquote">
+            Which characteristics describe tweets that precede and follow the largest movements in the price of bitcoin?
+        </blockquote>
+        <p>
+            For this project, I considered the difference in the open and close price over intervals of 15 minutes and 1 hour, both before and after the tweet.
+        </p>
+
+        <h2>Cloudy Days Never Stopped Me</h2>
+        <p>
+            In order to make the process of sharing my work easier, I decided after the first week to migrate all of my work to Google Colab and Github. Although I didn't use paid features from Colab, their free tier performed significantly better than my local machine. There was very little configuration required, and the Pandas library is actually pretty good at reading CSVs from the web. I uploaded whatever files I needed to on a public github repository; this means that anyone can run my notebook online, and it will behave the same it would on my end. Note that I would not do this if the data involved was not publicly available anyways.
+        </p>
+
+        <h2>Cleaning and Joining the Data</h2>
+        <p>
+            This part took much more time than I had anticipated, so I will refrain from too much detail. These are the basic steps I took to prepare the tweets:
+        </p>
+        <ul>
+            <li>Drop unverified tweets: as mentioned before, this was done to allow for the rest of the operations to happen in time</li>
+            <li>Drop null values: only user description and location were allowed to be null</li>
+            <li>Convert string and integer types: I made sure that these simple data type columns were in fact their correct data types using conversion functions.</li>
+            <li>Converting hashtags to lists: The hashtags were stored as lists (for example, as <code>"['Bitcoin', 'ETH', 'Bull']"</code>), but I needed them as lists. This led to using some basic regex and string manipulation, which Python luckily is very good for.</li>
+            <li>Converting dates and times: The two different datasets used different formats for their dates, so I used Python's datetime module to convert the formats for easier lookups</li>
+        </ul>
+        <p>
+            After these steps, I checked the dataset of prices, which was luckily pretty clean from the get-go. Up next, I had to join the prices, which is what took the most processing time:
+        </p>
+        <ul>
+            <li>Lookup functions: most of my work was spent making functions that would take a datetime object of a tweet and find the relevant information from the prices. I had a function each for finding the open, close, high, and low prices for a datetime and a given time interval in minutes. <em class="text-muted">Note: the interval choices being 15 and 60 minutes were completely arbitrary, and trying different ranges out would a great way to extend this project.</em></li>
+            <li>Performing lookup: Doing each lookup function for each interval on each tweet added up to about 2 hours of continuous runtime. There may have been a more efficient method of accomplishing what I did, but one way or another, I had extracted data on price movements 15 and 60 minutes, before and after each tweet.</li>
+            <li>Store data: To save the trees and my time, I exported these results to JSON files using Python's JSON module. </li>
+        </ul>
+
+        <h2>Making the Visuals</h2>
+        <p>
+            After all of this, I was finally ready to make some charts that could hopefully give insights into how prices and tweets relate with one another.
+        </p>
+        <h3>Likes and Followers</h3>
+        <p>Here, I try to see if there is any relationship between how many followers a user has and the kind of price movement that user's tweets correlate to. I do this also for the number of likes a tweet has. Let's take a look:</p>
+        <iframe id="8pies" src="g/follows_likes.html" frameborder="0"></iframe>
+        <p>Here we have our first finding: <strong>Popularity doesn't mean bigger movements</strong>  Measured by either likes or followers, popularity really only correlates to having a lower range of movements overall. This means simply looking at the most popular tweets won't be enough for looking at sentiment or prediction, and a popular person tweeting with #bitcoin probably won't move the ticker all by themselves.</p>
+        <h3>Hashtags</h3>
+        <p>
+            I wanted to see how the hashtags differ in tweets that were posted around strong positive movements against tweets posted during strong negative movements. This part took some more coding. If you recall, the hashtags were put into lists earlier; here, I turn each list into a Numpy array and horizontally stack each array together. The result in one massive array of all the hashtags, which I can then use to make the pie charts. Here is the hashtags breakdown across all of the tweets:
+        </p>
+        <iframe src="g/all_htags.html" frameborder="0"></iframe>
+        <p>
+            Besides bitcoin, a few other cryptocurrencies (as well cryptocurrency itself) shows up as tags:
+        </p>
+        <ul>
+            <li>Ethereum</li>
+            <li>LiteCoin</li>
+            <li>DogeCoin</li>
+        </ul>
+        <p>
+            We also see a few other topics conflate with these tweets:
+        </p>
+        <ul>
+            <li>Tokyo Olympics</li>
+            <li>Covid vaccines</li>
+            <li>Amazon Prime</li>
+        </ul>
+        <p>
+            Next, I wrote some more code to simplify making pie charts, but this code can be extended to work on any series that consists of lists (such as a list of words that the tweet is made of: that would be a great project extension too). Although this can be used in many different ways, I used it here to visualize hashtags of the top and bottom 100 tweets ranked by the value of their associated bitcoin price movement. Here's what the results showed:
+        </p>
+        <iframe src="g/8_pies.html" frameborder="0"></iframe>
+        <p>
+            These pie charts are kind of hard to look at, but there are clear patterns that emerge from looking at the tweets that happen when movements are positive versus when they're negative. Positive tweets use #Bitcoin less often. There's also more diversity overall in the positive tweets in the distribution of different tags. #China was an interesting mention that really only has high prominence in the top hundred of the "next 15 minutes" price movements. There are also interesting variations in the use of synonymous tags (such as #btc and #Bitcoin) across the different groups of tweets sampled here. This chart is indicative of certain hashtag patterns that I'm sure are more pronounced with a larger crowd.
+        </p>
+        <h3>Best and Worst Indicative Users</h3>
+        <p>
+            These were some of the more interesting charts I made in this project. I took the top and bottom 100 tweets ranked by price movement in the next hour and extracted <em>the top 10 users</em> from them. I then looked at <em>all</em> of the users' tweets and analyzed them with two kinds of graphs. First, I made box plots of the values of their hourly movements:
+        </p>
+        <iframe src="g/box_0.html" frameborder="0"></iframe>
+        <iframe src="g/box_1.html" frameborder="0"></iframe>
+        <iframe src="g/box_2.html" frameborder="0"></iframe>
+        <iframe src="g/box_3.html" frameborder="0"></iframe>
+        <iframe src="g/box_4.html" frameborder="0"></iframe>
+        <iframe src="g/box_5.html" frameborder="0"></iframe>
+        <iframe src="g/box_6.html" frameborder="0"></iframe>
+        <iframe src="g/box_7.html" frameborder="0"></iframe>
+        <iframe src="g/box_8.html" frameborder="0"></iframe>
+        <iframe src="g/box_9.html" frameborder="0"></iframe>
+        <p>
+            Even the users associated with the biggest movements don't have impressive box plots. In fact, most of the users with high tweet numbers have negative medians. What's interesting is that some users show up in both columns; this is probably because they tweet so often, that they are bound to run into bad days. Over both columns, there still is a difference in the inter-quartile ranges between users, and I think further analysis in this approach will certainly reveal which users tend to improve sentiment with their tweets. For now, it seems @IGSquak is doing the best at signaling positive hourly movements.
+        </p>
+        <p>
+            We can also take a look at the price data on the specific days each user tweeted. We do this using a kind of chart seen very often in the financial world: the candlestick chart. The formatting of my data beforehand made it very simple for me to make candlestick charts in the same fashion I made my box plots for each of the users.
+        </p>
+        <iframe src="g/candle_0.html" frameborder="0"></iframe>
+        <iframe src="g/candle_1.html" frameborder="0"></iframe>
+        <iframe src="g/candle_2.html" frameborder="0"></iframe>
+        <iframe src="g/candle_3.html" frameborder="0"></iframe>
+        <iframe src="g/candle_4.html" frameborder="0"></iframe>
+        <iframe src="g/candle_5.html" frameborder="0"></iframe>
+        <iframe src="g/candle_6.html" frameborder="0"></iframe>
+        <iframe src="g/candle_7.html" frameborder="0"></iframe>
+        <iframe src="g/candle_8.html" frameborder="0"></iframe>
+        <iframe src="g/candle_9.html" frameborder="0"></iframe>
+        <p>
+            Over the aggregate of weeks and months, it can be seen that the "influential" twitter users tweet much more often when a long run movement is happening; in fact, they seem to be more active during the long runs of a tweet. This also explains why some users can end up in both the top and bottom 10 in the same metric. 
+        </p>
+        
+        <h2>Wrapping it up</h2>
+        <p>
+            To finish up, I used functions from the plotting libraries I used to extract HTML versions of my graphs and put them into this webpage (I found it the easiest way to put interactive renders of my charts in a place I can share).
+        </p>
+        <p>
+            Overall, we learned that tweets are very volatile rows of data when viewed just from the surface; they require a fair bit of manipulation to render data that can be used in these visualization purposes. Once done, however, many opportunities exist to extract from them insights and trends that can explain how prices and tweet characteristics relate. In my case I found:
+        </p>
+        <ul>
+            <li>Popularity of a tweet doesn't really matter; the highest price movements come from tweets that are less liked and from less followed users</li>
+            <li>Hashtag variety tends to be low when bitcoin prices are moving downwards</li>
+            <li>Most of the users whose tweets tend to coincide with big movements tweet for the duration of big movements that span much more than a single hour; they seem to follow the news pretty closely, especially when big price changes are happening. Analyzing these tweets may yield the most insight how tweets influence prices and vice-versa</li>
+        </ul>
+        <p>
+            It is very tempting to leave deadlines in the back of my mind and continue tearing into the data, making more graphs and analyzing more properties of these tweets. I was even tempted to bring in NLP libraries and go crazy with all of the things that are possible here. Nevertheless, I believe I've accomplished my goal of creating a solid foundation to continue this analysis into many other dimensions; I've designed every aspect of this project to be shareable and open to variation and experimentation.
+        </p>
+    </div>
+</body>
+</html>
